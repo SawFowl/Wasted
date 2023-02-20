@@ -1,59 +1,62 @@
 plugins {
-    id "java"
-    id "signing"
-    id "ninja.miserable.blossom" version "1.0.1"
-    id "com.github.johnrengelman.shadow" version "2.0.1"
-    id "org.spongepowered.plugin" version "0.8.1"
-    id 'com.qixalite.spongestart2' version '3.0.1'
+	id("java")
+	id("org.spongepowered.gradle.plugin") version "2.0.2"
+	id("eclipse")
 }
 
-group = "mr_krab.wasted"
+group = "sawfowl.wasted"
 version = "${major}.${minor}.${patch}-${api}-${suffix}"
-description = "Plugin for changing death messages."
 
-if (System.getenv().BUILD_NUMBER != null) {
-    version += "-${System.getenv().BUILD_NUMBER}"
-}
-
-compileJava {
-    sourceCompatibility = targetCompatibility = "1.8"
-}
-
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
+java {
+	sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 repositories {
-    jcenter()
-    maven {
-        name = "Sponge"
-        url = "http://repo.spongepowered.org/maven"
-    }
-    maven {
-        name = "Forge"
-        url = "http://files.minecraftforge.net/maven"
-    }
-    maven {
-        name = 'bstats'
-        url = 'http://repo.bstats.org/content/repositories/releases/'
-    }
+	mavenCentral()
+	maven {
+		name = "Sponge"
+		url = "https://repo.spongepowered.org/repository/maven-public"
+	}
+	maven { 
+		name = "JitPack"
+		url 'https://jitpack.io' 
+	}
+}
+
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
 }
 
 dependencies {
-    compile("org.spongepowered:spongeapi:${spongeapi}")
+	implementation "org.spongepowered:spongeapi:8.0.0"
+	implementation "com.github.SawFowl:LocaleAPI:2.4.0"
+	//implementation fileTree(dir: 'libs', include: '*.jar')
 }
 
-spongestart {
-    online 'false'
-    minecraft '1.12.2'
-    type 'bleeding'
-    spongeForge properties.spongeforge
-    forgeServerFolder 'run/API7/'
+sponge {
+	apiVersion("8.0.0")
+	loader {
+		name("java_plain")
+		version("1.0")
+	}
+	license("GPL-3.0")
+	plugin("wasted") {
+		displayName(project.name.capitalize())
+		version("${project.version}")
+		entrypoint("${project.group}.${rootProject.name}")
+		description("Plugin for changing death messages.")
+		contributor("SawFowl") {
+			description("Lead Developer")
+		}
+		dependency("spongeapi") {
+			optional(false)
+			loadOrder("after")
+			version("8.0.0")
+		}
+		dependency("localeapi") {
+			optional(false)
+			loadOrder("after")
+			version("2.4.0")
+		}
+	}
 }
-
-signing {
-    required {Project.hasProperty("signing.keyId")}
-    sign configurations.archives, configurations.shadow
-}
-
-build.dependsOn(shadowJar)
