@@ -83,7 +83,7 @@ public class DeathListener {
 							ServerPlayer killer = (ServerPlayer) projectileSource;
 							ItemStack handItem = killer.itemInHand(HandTypes.MAIN_HAND);
 							Object[] path = {deathMessages, "PvP", "Projectile", entityId(projectile).asString()};
-							if(!handItem.type().equals(ItemTypes.AIR.get())) path = new Object[] {deathMessages, "PvP", "Projectile", "Weapon", entityId(projectile).asString(), itemId(handItem)};
+							if(!handItem.type().equals(ItemTypes.AIR.get())) path = new Object[] {deathMessages, "PvP", "Projectile", "Weapon", entityId(projectile).asString()};
 							if(!plugin.getLocales().containsMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, killer.name(), getPlayerName(killer), path);
 							sendMessage(message, player, getPlayerName(player), handItem, path);
 						} else {
@@ -118,7 +118,7 @@ public class DeathListener {
 					ServerPlayer killer = (ServerPlayer) source;
 					ItemStack handItem = killer.itemInHand(HandTypes.MAIN_HAND);
 					Object[] path = {deathMessages, "PvP", "Melee"};
-					if(!handItem.type().equals(ItemTypes.AIR.get())) path = new Object[] {deathMessages, "PvP", "Projectile", "Weapon", itemId(handItem)};
+					if(!handItem.type().equals(ItemTypes.AIR.get())) path = new Object[] {deathMessages, "PvP", "Melee", "Weapon"};
 					if(!plugin.getLocales().containsMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, killer.name(), getPlayerName(killer), path);
 					sendMessage(message, player, getPlayerName(player), handItem, path);
 				} else {
