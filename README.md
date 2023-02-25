@@ -11,4 +11,4 @@ If you'd like, you can provide me with a default localization file filled with a
 
 
 ##### Commands: 
-/sponge plugins refresh wasted - Reload plugin config. \
+/sponge plugins refresh wasted - Reload plugin config.
