@@ -12,3 +12,9 @@ If you'd like, you can provide me with a default localization file filled with a
 
 ##### Commands: 
 /sponge plugins refresh wasted - Reload plugin config.
+
+##### Placeholders: 
+%player% - The Player Who Died
+%killer% - Player Killer
+%indirect-killer%- Killer player who indirectly used %killer%
+%item% - An object in the hands of a murderer.
