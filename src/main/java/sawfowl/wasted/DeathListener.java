@@ -186,7 +186,7 @@ public class DeathListener {
 						ServerPlayer killer = (ServerPlayer) optLastAtacker.get();
 						path = new Object[] {deathMessages, "FallingBlocks", "PvP", blockId};
 						if(!killer.itemInHand(HandTypes.MAIN_HAND).type().equals(ItemTypes.AIR.get())) {
-							if(!plugin.getLocales().containsMessagePath(path)) plugin.getLocales().addDeathMessage(TextUtils.replace(message, (new String[] {killer.name(), getPlayerName(killer), itemId(killer.itemInHand(HandTypes.MAIN_HAND)).asString()}), (new String[] {Placeholders.KILLER, Placeholders.KILLER, Placeholders.ITEM})), player, path);
+							if(!plugin.getLocales().containsMessagePath(path)) plugin.getLocales().addDeathMessage(TextUtils.replace(message, (new String[] {killer.name(), getPlayerName(killer), string(killer.itemInHand(HandTypes.MAIN_HAND).asComponent())}), (new String[] {Placeholders.KILLER, Placeholders.KILLER, Placeholders.ITEM})), player, path);
 							sendMessage(message, player, getPlayerName(killer), killer.itemInHand(HandTypes.MAIN_HAND), path);
 						} else {
 							if(!plugin.getLocales().containsMessagePath(path)) plugin.getLocales().addDeathMessage(TextUtils.replace(message, (new String[] {killer.name(), getPlayerName(killer)}), (new String[] {Placeholders.KILLER, Placeholders.KILLER})), player, path);
@@ -216,7 +216,7 @@ public class DeathListener {
 						ServerPlayer killer = (ServerPlayer) optLastAtacker.get();
 						path = new Object[] {deathMessages, "BlockDamage", "PvP", blockId};
 						if(!killer.itemInHand(HandTypes.MAIN_HAND).type().equals(ItemTypes.AIR.get())) {
-							if(!plugin.getLocales().containsMessagePath(path)) plugin.getLocales().addDeathMessage(TextUtils.replace(message, (new String[] {killer.name(), getPlayerName(killer), itemId(killer.itemInHand(HandTypes.MAIN_HAND)).asString()}), (new String[] {Placeholders.KILLER, Placeholders.KILLER, Placeholders.ITEM})), player, path);
+							if(!plugin.getLocales().containsMessagePath(path)) plugin.getLocales().addDeathMessage(TextUtils.replace(message, (new String[] {killer.name(), getPlayerName(killer), string(killer.itemInHand(HandTypes.MAIN_HAND).asComponent())}), (new String[] {Placeholders.KILLER, Placeholders.KILLER, Placeholders.ITEM})), player, path);
 							sendMessage(message, player, getPlayerName(killer), killer.itemInHand(HandTypes.MAIN_HAND), path);
 						} else {
 							if(!plugin.getLocales().containsMessagePath(path)) plugin.getLocales().addDeathMessage(TextUtils.replace(message, (new String[] {killer.name(), getPlayerName(killer)}), (new String[] {Placeholders.KILLER, Placeholders.KILLER})), player, path);
@@ -247,7 +247,7 @@ public class DeathListener {
 						ServerPlayer killer = (ServerPlayer) optLastAtacker.get();
 						path = new Object[] {deathMessages, "DamageTypes", "PvP", damageId};
 						if(!killer.itemInHand(HandTypes.MAIN_HAND).type().equals(ItemTypes.AIR.get())) {
-							if(!plugin.getLocales().containsMessagePath(path)) plugin.getLocales().addDeathMessage(TextUtils.replace(message, itemId(killer.itemInHand(HandTypes.MAIN_HAND)).asString(), Placeholders.ITEM), player, path);
+							if(!plugin.getLocales().containsMessagePath(path)) plugin.getLocales().addDeathMessage(TextUtils.replace(message, string(killer.itemInHand(HandTypes.MAIN_HAND).asComponent()), Placeholders.ITEM), player, path);
 							sendMessage(message, player, getPlayerName(killer), killer.itemInHand(HandTypes.MAIN_HAND), path);
 						} else {
 							if(!plugin.getLocales().containsMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, killer.name(), getPlayerName(killer), path);
@@ -283,10 +283,6 @@ public class DeathListener {
 
 	private static ResourceKey damageTypeId(DamageType damageType) {
 		return Sponge.game().registry(RegistryTypes.DAMAGE_TYPE).valueKey(damageType);
-	}
-
-	private static ResourceKey itemId(ItemStack itemStack) {
-		return Sponge.game().registry(RegistryTypes.ITEM_TYPE).valueKey(itemStack.type());
 	}
 
 	private Collection<ServerPlayer> getOnlinePlayers() {
