@@ -8,16 +8,10 @@ public class Config {
 
 	public Config() {}
 
-	@Setting("Debug")
-	private boolean debug = true;
 	@Setting("JsonLocales")
-	private boolean jsonLocales = true;
+	private boolean jsonLocales = false;
 	@Setting("ConsoleDeathMessage")
 	private boolean consoleDeathMessage = true;
-
-	public boolean isDebug() {
-		return debug;
-	}
 
 	public boolean isJsonLocales() {
 		return jsonLocales;

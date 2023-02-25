@@ -4,10 +4,15 @@ import java.nio.file.Path;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.spongepowered.api.Server;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.lifecycle.RefreshGameEvent;
+import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
 import org.spongepowered.configurate.reference.ConfigurationReference;
 import org.spongepowered.configurate.reference.ValueReference;
@@ -16,20 +21,21 @@ import org.spongepowered.plugin.builtin.jvm.Plugin;
 
 import com.google.inject.Inject;
 
-import sawfowl.localeapi.api.LocaleService;
 import sawfowl.localeapi.event.LocaleServiseEvent;
 import sawfowl.wasted.configure.Config;
+import sawfowl.wasted.configure.Locales;
 
 @Plugin("wasted")
 public class Wasted {
 	private Logger logger;
 
 	private Wasted instance;
-	private LocaleService api;
 	private PluginContainer pluginContainer;
 	private Path configDir;
 	private ConfigurationReference<CommentedConfigurationNode> configurationReference;
 	private ValueReference<Config, CommentedConfigurationNode> config;
+	private Locales locales;
+	ConfigurationOptions options;
 
 	public Wasted getInstance() {
 		return instance;
@@ -43,12 +49,12 @@ public class Wasted {
 		return logger;
 	}
 
-	public LocaleService getAPI() {
-		return api;
-	}
-
 	public Config getConfig() {
 		return config.get();
+	}
+
+	public Locales getLocales() {
+		return locales;
 	}
 
 	@Inject
@@ -61,8 +67,24 @@ public class Wasted {
 
 	@Listener
 	public void onLocaleServisePostEvent(LocaleServiseEvent.Construct event) {
+		options = event.getLocaleService().getConfigurationOptions();
+		loadConfig();
+		locales = new Locales(event.getLocaleService(), getConfig().isJsonLocales());
+	}
+
+	@Listener
+	public void onServerStarted(StartedEngineEvent<Server> event) {
+		Sponge.eventManager().registerListeners(pluginContainer, new DeathListener(instance));
+	}
+
+	@Listener
+	public void onReload(RefreshGameEvent event) {
+		loadConfig();
+	}
+
+	private void loadConfig() {
 		try {
-			configurationReference = HoconConfigurationLoader.builder().defaultOptions(event.getLocaleService().getConfigurationOptions()).path(configDir.resolve("Config.conf")).build().loadToReference();
+			configurationReference = HoconConfigurationLoader.builder().defaultOptions(options).path(configDir.resolve("Config.conf")).build().loadToReference();
 			config = configurationReference.referenceTo(Config.class);
 			if(!configDir.resolve("Config.conf").toFile().exists()) configurationReference.save();
 		} catch (ConfigurateException e) {
