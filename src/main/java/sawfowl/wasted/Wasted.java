@@ -68,7 +68,13 @@ public class Wasted {
 	@Listener
 	public void onLocaleServisePostEvent(LocaleServiseEvent.Construct event) {
 		options = event.getLocaleService().getConfigurationOptions();
-		loadConfig();
+		try {
+			configurationReference = HoconConfigurationLoader.builder().defaultOptions(options).path(configDir.resolve("Config.conf")).build().loadToReference();
+			config = configurationReference.referenceTo(Config.class);
+			if(!configDir.resolve("Config.conf").toFile().exists()) configurationReference.save();
+		} catch (ConfigurateException e) {
+			logger.warn(e.getLocalizedMessage());
+		}
 		locales = new Locales(event.getLocaleService(), getConfig().isJsonLocales());
 	}
 
@@ -79,14 +85,9 @@ public class Wasted {
 
 	@Listener
 	public void onReload(RefreshGameEvent event) {
-		loadConfig();
-	}
-
-	private void loadConfig() {
 		try {
-			configurationReference = HoconConfigurationLoader.builder().defaultOptions(options).path(configDir.resolve("Config.conf")).build().loadToReference();
+			configurationReference.load();
 			config = configurationReference.referenceTo(Config.class);
-			if(!configDir.resolve("Config.conf").toFile().exists()) configurationReference.save();
 		} catch (ConfigurateException e) {
 			logger.warn(e.getLocalizedMessage());
 		}
