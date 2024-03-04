@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -16,11 +15,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+
 import sawfowl.localeapi.api.ConfigTypes;
 import sawfowl.localeapi.api.LocaleService;
+import sawfowl.localeapi.api.PluginLocale;
+import sawfowl.localeapi.api.Text;
 import sawfowl.localeapi.api.TextUtils;
-import sawfowl.localeapi.serializetools.SerializedItemStack;
-import sawfowl.localeapi.utils.AbstractLocaleUtil;
+import sawfowl.localeapi.api.serializetools.itemstack.SerializedItemStackPlainNBT;
 
 public class Locales {
 
@@ -48,62 +49,54 @@ public class Locales {
 	}
 
 	public Component getText(Locale locale, Object... path) {
-		return getAbstractLocaleUtil(locale).getComponent(json, path);
-	}
-
-	public Component getTextWithReplaced(Locale locale, Map<String, String> map, Object... path) {
-		return replace(getText(locale, path), map);
-	}
-
-	public Component getTextReplaced(Locale locale, Map<String, Component> map, Object... path) {
-		return replaceComponent(getText(locale, path), map);
+		return getPluginLocale(locale).getComponent(json, path);
 	}
 
 	public Component getTextFromDefault(Object... path) {
-		return getAbstractLocaleUtil(org.spongepowered.api.util.locale.Locales.DEFAULT).getComponent(json, path);
+		return getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getComponent(json, path);
 	}
 
 	public Component getRandomMessage(Locale locale, ServerPlayer player, Object... path) {
-		List<Component> components = getAbstractLocaleUtil(player.locale()).getListComponents(json, path);
-		return getAbstractLocaleUtil(locale).getComponent(json, "Basic", "Prefix").append(TextUtils.replace(components.get(random.nextInt(components.size())), Placeholders.PLAYER, toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " "))));
+		List<Component> components = getPluginLocale(player.locale()).getListComponents(json, path);
+		return getPluginLocale(locale).getComponent(json, "Basic", "Prefix").append(Text.of(components.get(random.nextInt(components.size()))).replace(Placeholders.PLAYER, toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " "))).get());
 	}
 
 	public Component getRandomMessage(Locale locale, ServerPlayer player, String killer, Object... path) {
-		List<Component> components = getAbstractLocaleUtil(player.locale()).getListComponents(json, path);
-		return getAbstractLocaleUtil(locale).getComponent(json, "Basic", "Prefix").append(TextUtils.replace(components.get(random.nextInt(components.size())), (new String[] {Placeholders.PLAYER, Placeholders.KILLER}), (new Component[] {toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), toText(killer)})));
+		List<Component> components = getPluginLocale(player.locale()).getListComponents(json, path);
+		return getPluginLocale(locale).getComponent(json, "Basic", "Prefix").append(Text.of(components.get(random.nextInt(components.size()))).replace(new String[] {Placeholders.PLAYER, Placeholders.KILLER}, toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), toText(killer)).get());
 	}
 
 	public Component getRandomMessage(Locale locale, ServerPlayer player, String killer, String indirectKiller, Object... path) {
-		List<Component> components = getAbstractLocaleUtil(player.locale()).getListComponents(json, path);
-		return getAbstractLocaleUtil(locale).getComponent(json, "Basic", "Prefix").append(TextUtils.replace(components.get(random.nextInt(components.size())), (new String[] {Placeholders.PLAYER, Placeholders.KILLER, Placeholders.INDIRECT_KILLER}), (new Component[] {toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), toText(killer), toText(indirectKiller)})));
+		List<Component> components = getPluginLocale(player.locale()).getListComponents(path);
+		return getPluginLocale(locale).getComponent(json, "Basic", "Prefix").append(Text.of(components.get(random.nextInt(components.size()))).replace(new String[] {Placeholders.PLAYER, Placeholders.KILLER, Placeholders.INDIRECT_KILLER}, toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), toText(killer), toText(indirectKiller)).get());
 	}
 
 	public Component getRandomMessage(Locale locale, ServerPlayer player, String killer, ItemStack item, Object... path) {
-		List<Component> components = getAbstractLocaleUtil(player.locale()).getListComponents(json, path);
-		return getAbstractLocaleUtil(locale).getComponent(json, "Basic", "Prefix").append(TextUtils.replaceToComponents(components.get(random.nextInt(components.size())), (new String[] {Placeholders.PLAYER, Placeholders.KILLER, Placeholders.ITEM}), (new Component[] {toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), toText(killer), item.asComponent().hoverEvent(HoverEvent.showItem((new SerializedItemStack(item).getItemKey()), item.quantity()))})));
+		List<Component> components = getPluginLocale(player.locale()).getListComponents(json, path);
+		return getPluginLocale(locale).getComponent(json, "Basic", "Prefix").append(Text.of(components.get(random.nextInt(components.size()))).replace(new String[] {Placeholders.PLAYER, Placeholders.KILLER, Placeholders.ITEM}, toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), toText(killer), item.asComponent().hoverEvent(HoverEvent.showItem((new SerializedItemStackPlainNBT(item).getItemKey()), item.quantity()))).get());
 	}
 
 	public Component getPrefix(Locale locale) {
-		return getAbstractLocaleUtil(locale).getComponent(json, "Basic", "Prefix");
+		return getPluginLocale(locale).getComponent(json, "Basic", "Prefix");
 	}
 
 	public boolean containsMessagePath(Object... path) {
-		return !getAbstractLocaleUtil(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).virtual();
+		return !getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).virtual();
 	}
 
 	public boolean containsMessagePath(Locale locale, Object... path) {
-		return !getAbstractLocaleUtil(locale).getLocaleNode(path).virtual();
+		return !getPluginLocale(locale).getLocaleNode(path).virtual();
 	}
 
 	public void addDeathMessage(Component component, ServerPlayer player, Object... path) {
-		if(!getAbstractLocaleUtil(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).virtual()) return;
+		if(!getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).virtual()) return;
 		component = toText(Placeholders.PLAYER + string(component));
 		List<String> messages = new ArrayList<>();
 		String message = json ? TextUtils.serializeJson(component) : TextUtils.serializeLegacy(component);
 		if(messages.contains(message)) return;
 		messages.add(message);
 		try {
-			getAbstractLocaleUtil(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).setList(String.class, messages);
+			getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).setList(String.class, messages);
 			save(org.spongepowered.api.util.locale.Locales.DEFAULT);
 		} catch (SerializationException e) {
 			e.printStackTrace();
@@ -111,14 +104,14 @@ public class Locales {
 	}
 
 	public void addDeathMessage(Component component, ServerPlayer player, String killer, Object... path) {
-		if(!getAbstractLocaleUtil(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).virtual()) return;
+		if(!getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).virtual()) return;
 		component = toText(Placeholders.PLAYER + string(component).replace(killer, "") + Placeholders.KILLER);
 		List<String> messages = new ArrayList<>();
 		String message = json ? TextUtils.serializeJson(component) : TextUtils.serializeLegacy(component);
 		if(messages.contains(message)) return;
 		messages.add(message);
 		try {
-			getAbstractLocaleUtil(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).setList(String.class, messages);
+			getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).setList(String.class, messages);
 			save(org.spongepowered.api.util.locale.Locales.DEFAULT);
 		} catch (SerializationException e) {
 			e.printStackTrace();
@@ -126,14 +119,14 @@ public class Locales {
 	}
 
 	public void addDeathMessage(Component component, ServerPlayer player, String killer, String killerCustomName, Object... path) {
-		if(!getAbstractLocaleUtil(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).virtual()) return;
+		if(!getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).virtual()) return;
 		component = toText(Placeholders.PLAYER + string(component).replace(killer, "").replace(killerCustomName, "") + Placeholders.KILLER);
 		List<String> messages = new ArrayList<>();
 		String message = json ? TextUtils.serializeJson(component) : TextUtils.serializeLegacy(component);
 		if(messages.contains(message)) return;
 		messages.add(message);
 		try {
-			getAbstractLocaleUtil(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).setList(String.class, messages);
+			getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).setList(String.class, messages);
 			save(org.spongepowered.api.util.locale.Locales.DEFAULT);
 		} catch (SerializationException e) {
 			e.printStackTrace();
@@ -158,15 +151,7 @@ public class Locales {
 		if(save) save(locale);
 	}
 
-	private Component replace(Component component, Map<String, String> map) {
-		return TextUtils.replace(component, map);
-	}
-
-	private Component replaceComponent(Component component, Map<String, Component> map) {
-		return TextUtils.replaceToComponents(component, map);
-	}
-
-	private AbstractLocaleUtil getAbstractLocaleUtil(Locale locale) {
+	private PluginLocale getPluginLocale(Locale locale) {
 		return localeService.getPluginLocales("wasted").getOrDefault(locale, localeService.getPluginLocales("wasted").get(org.spongepowered.api.util.locale.Locales.DEFAULT));
 	}
 
@@ -175,15 +160,15 @@ public class Locales {
 	}
 
 	private boolean check(Locale locale, Component value, String comment, Object... path) {
-		return getAbstractLocaleUtil(locale).checkComponent(json, value, comment, path);
+		return getPluginLocale(locale).checkComponent(json, value, comment, path);
 	}
 
 	private boolean check(Locale locale, List<Component> value, String comment, Object... path) {
-		return getAbstractLocaleUtil(locale).checkListComponents(json, value, comment, path);
+		return getPluginLocale(locale).checkListComponents(json, value, comment, path);
 	}
 
 	private void save(Locale locale) {
-		getAbstractLocaleUtil(locale).saveLocaleNode();
+		getPluginLocale(locale).saveLocaleNode();
 	}
 
 	private String string(Component component) {

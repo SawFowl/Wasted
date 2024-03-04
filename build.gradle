@@ -1,14 +1,14 @@
 plugins {
 	id("java")
-	id("org.spongepowered.gradle.plugin") version "2.0.2"
 	id("eclipse")
+	id("org.spongepowered.gradle.plugin") version "2.0.2"
 }
 
 group = "sawfowl.wasted"
 version = "${major}.${minor}.${patch}-${api}-${suffix}"
 
 java {
-	sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
+	sourceCompatibility = targetCompatibility = JavaVersion.VERSION_17
 }
 
 repositories {
@@ -28,13 +28,13 @@ tasks.withType(JavaCompile) {
 }
 
 dependencies {
-	implementation "org.spongepowered:spongeapi:8.1.0"
-	implementation "com.github.SawFowl:LocaleAPI:2.5.0"
+	implementation "org.spongepowered:spongeapi:${api}"
+	implementation "com.github.SawFowl:LocaleAPI:${localeapi}"
 	//implementation fileTree(dir: 'libs', include: '*.jar')
 }
 
 sponge {
-	apiVersion("8.0.0")
+	apiVersion("${api}")
 	loader {
 		name("java_plain")
 		version("1.0")
@@ -51,12 +51,12 @@ sponge {
 		dependency("spongeapi") {
 			optional(false)
 			loadOrder("after")
-			version("8.0.0")
+			version("${api}")
 		}
 		dependency("localeapi") {
 			optional(false)
 			loadOrder("after")
-			version("2.5.0")
+			version("${localeapi}")
 		}
 	}
 }

@@ -12,8 +12,6 @@ import org.spongepowered.api.event.lifecycle.RefreshGameEvent;
 import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
-import org.spongepowered.configurate.ConfigurationOptions;
-import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
 import org.spongepowered.configurate.reference.ConfigurationReference;
 import org.spongepowered.configurate.reference.ValueReference;
 import org.spongepowered.plugin.PluginContainer;
@@ -21,7 +19,8 @@ import org.spongepowered.plugin.builtin.jvm.Plugin;
 
 import com.google.inject.Inject;
 
-import sawfowl.localeapi.event.LocaleServiseEvent;
+import sawfowl.localeapi.api.event.LocaleServiseEvent;
+import sawfowl.localeapi.api.serializetools.SerializeOptions;
 import sawfowl.wasted.configure.Config;
 import sawfowl.wasted.configure.Locales;
 
@@ -35,7 +34,6 @@ public class Wasted {
 	private ConfigurationReference<CommentedConfigurationNode> configurationReference;
 	private ValueReference<Config, CommentedConfigurationNode> config;
 	private Locales locales;
-	ConfigurationOptions options;
 
 	public Wasted getInstance() {
 		return instance;
@@ -67,9 +65,8 @@ public class Wasted {
 
 	@Listener
 	public void onLocaleServisePostEvent(LocaleServiseEvent.Construct event) {
-		options = event.getLocaleService().getConfigurationOptions();
 		try {
-			configurationReference = HoconConfigurationLoader.builder().defaultOptions(options).path(configDir.resolve("Config.conf")).build().loadToReference();
+			configurationReference = SerializeOptions.createHoconConfigurationLoader(2).path(configDir.resolve("Config.conf")).build().loadToReference();
 			config = configurationReference.referenceTo(Config.class);
 			if(!configDir.resolve("Config.conf").toFile().exists()) configurationReference.save();
 		} catch (ConfigurateException e) {
