@@ -1,6 +1,5 @@
 package sawfowl.wasted.configure;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -49,54 +48,49 @@ public class Locales {
 	}
 
 	public Component getText(Locale locale, Object... path) {
-		return getPluginLocale(locale).getComponent(json, path);
+		return getPluginLocale(locale).getComponent(path);
 	}
 
 	public Component getTextFromDefault(Object... path) {
-		return getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getComponent(json, path);
+		return getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getComponent(path);
 	}
 
 	public Component getRandomMessage(Locale locale, ServerPlayer player, Object... path) {
-		List<Component> components = getPluginLocale(player.locale()).getListComponents(json, path);
-		return getPluginLocale(locale).getComponent(json, "Basic", "Prefix").append(Text.of(components.get(random.nextInt(components.size()))).replace(Placeholders.PLAYER, toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " "))).get());
+		List<Component> components = getPluginLocale(player.locale()).getListComponents(path);
+		return getPluginLocale(locale).getComponent("Basic", "Prefix").append(Text.of(components.get(random.nextInt(components.size()))).replace(Placeholders.PLAYER, toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " "))).get());
 	}
 
 	public Component getRandomMessage(Locale locale, ServerPlayer player, String killer, Object... path) {
-		List<Component> components = getPluginLocale(player.locale()).getListComponents(json, path);
-		return getPluginLocale(locale).getComponent(json, "Basic", "Prefix").append(Text.of(components.get(random.nextInt(components.size()))).replace(new String[] {Placeholders.PLAYER, Placeholders.KILLER}, toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), toText(killer)).get());
+		List<Component> components = getPluginLocale(player.locale()).getListComponents(path);
+		return getPluginLocale(locale).getComponent("Basic", "Prefix").append(Text.of(components.get(random.nextInt(components.size()))).replace(new String[] {Placeholders.PLAYER, Placeholders.KILLER}, toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), toText(killer)).get());
 	}
 
 	public Component getRandomMessage(Locale locale, ServerPlayer player, String killer, String indirectKiller, Object... path) {
 		List<Component> components = getPluginLocale(player.locale()).getListComponents(path);
-		return getPluginLocale(locale).getComponent(json, "Basic", "Prefix").append(Text.of(components.get(random.nextInt(components.size()))).replace(new String[] {Placeholders.PLAYER, Placeholders.KILLER, Placeholders.INDIRECT_KILLER}, toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), toText(killer), toText(indirectKiller)).get());
+		return getPluginLocale(locale).getComponent("Basic", "Prefix").append(Text.of(components.get(random.nextInt(components.size()))).replace(new String[] {Placeholders.PLAYER, Placeholders.KILLER, Placeholders.INDIRECT_KILLER}, toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), toText(killer), toText(indirectKiller)).get());
 	}
 
 	public Component getRandomMessage(Locale locale, ServerPlayer player, String killer, ItemStack item, Object... path) {
-		List<Component> components = getPluginLocale(player.locale()).getListComponents(json, path);
-		return getPluginLocale(locale).getComponent(json, "Basic", "Prefix").append(Text.of(components.get(random.nextInt(components.size()))).replace(new String[] {Placeholders.PLAYER, Placeholders.KILLER, Placeholders.ITEM}, toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), toText(killer), item.asComponent().hoverEvent(HoverEvent.showItem((new SerializedItemStackPlainNBT(item).getItemKey()), item.quantity()))).get());
+		List<Component> components = getPluginLocale(player.locale()).getListComponents(path);
+		return getPluginLocale(locale).getComponent("Basic", "Prefix").append(Text.of(components.get(random.nextInt(components.size()))).replace(new String[] {Placeholders.PLAYER, Placeholders.KILLER, Placeholders.ITEM}, toText(player.name()).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), toText(killer), item.asComponent().hoverEvent(HoverEvent.showItem((new SerializedItemStackPlainNBT(item).getItemKey()), item.quantity()))).get());
 	}
 
 	public Component getPrefix(Locale locale) {
-		return getPluginLocale(locale).getComponent(json, "Basic", "Prefix");
+		return getPluginLocale(locale).getComponent("Basic", "Prefix");
 	}
 
-	public boolean containsMessagePath(Object... path) {
-		return !getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).virtual();
+	public boolean isVirtualMessagePath(Object... path) {
+		return getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).virtual();
 	}
 
-	public boolean containsMessagePath(Locale locale, Object... path) {
-		return !getPluginLocale(locale).getLocaleNode(path).virtual();
+	public boolean isVirtualMessagePath(Locale locale, Object... path) {
+		return getPluginLocale(locale).getLocaleNode(path).virtual();
 	}
 
 	public void addDeathMessage(Component component, ServerPlayer player, Object... path) {
-		if(!getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).virtual()) return;
-		component = toText(Placeholders.PLAYER + string(component));
-		List<String> messages = new ArrayList<>();
-		String message = json ? TextUtils.serializeJson(component) : TextUtils.serializeLegacy(component);
-		if(messages.contains(message)) return;
-		messages.add(message);
+		if(!isVirtualMessagePath(org.spongepowered.api.util.locale.Locales.DEFAULT, path)) return;
 		try {
-			getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).setList(String.class, messages);
+			getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).setList(Component.class, Arrays.asList(clear(component)));
 			save(org.spongepowered.api.util.locale.Locales.DEFAULT);
 		} catch (SerializationException e) {
 			e.printStackTrace();
@@ -104,14 +98,9 @@ public class Locales {
 	}
 
 	public void addDeathMessage(Component component, ServerPlayer player, String killer, Object... path) {
-		if(!getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).virtual()) return;
-		component = toText(Placeholders.PLAYER + string(component).replace(killer, "") + Placeholders.KILLER);
-		List<String> messages = new ArrayList<>();
-		String message = json ? TextUtils.serializeJson(component) : TextUtils.serializeLegacy(component);
-		if(messages.contains(message)) return;
-		messages.add(message);
+		if(!isVirtualMessagePath(org.spongepowered.api.util.locale.Locales.DEFAULT, path)) return;
 		try {
-			getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).setList(String.class, messages);
+			getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).setList(Component.class, Arrays.asList(Text.of(clear(component)).replace(killer, Placeholders.KILLER).get()));
 			save(org.spongepowered.api.util.locale.Locales.DEFAULT);
 		} catch (SerializationException e) {
 			e.printStackTrace();
@@ -119,14 +108,9 @@ public class Locales {
 	}
 
 	public void addDeathMessage(Component component, ServerPlayer player, String killer, String killerCustomName, Object... path) {
-		if(!getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).virtual()) return;
-		component = toText(Placeholders.PLAYER + string(component).replace(killer, "").replace(killerCustomName, "") + Placeholders.KILLER);
-		List<String> messages = new ArrayList<>();
-		String message = json ? TextUtils.serializeJson(component) : TextUtils.serializeLegacy(component);
-		if(messages.contains(message)) return;
-		messages.add(message);
+		if(isVirtualMessagePath(org.spongepowered.api.util.locale.Locales.DEFAULT, path)) return;
 		try {
-			getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).setList(String.class, messages);
+			getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getLocaleNode(path).setList(Component.class, Arrays.asList(Text.of(clear(component)).replace(killer, "").replace(killerCustomName, Placeholders.KILLER).get()));
 			save(org.spongepowered.api.util.locale.Locales.DEFAULT);
 		} catch (SerializationException e) {
 			e.printStackTrace();
@@ -152,7 +136,7 @@ public class Locales {
 	}
 
 	private PluginLocale getPluginLocale(Locale locale) {
-		return localeService.getPluginLocales("wasted").getOrDefault(locale, localeService.getPluginLocales("wasted").get(org.spongepowered.api.util.locale.Locales.DEFAULT));
+		return localeService.getPluginLocales("wasted").containsKey(locale) ? localeService.getPluginLocales("wasted").get(locale) : localeService.getPluginLocales("wasted").get(org.spongepowered.api.util.locale.Locales.DEFAULT);
 	}
 
 	private Component toText(String string) {
@@ -171,8 +155,8 @@ public class Locales {
 		getPluginLocale(locale).saveLocaleNode();
 	}
 
-	private String string(Component component) {
-		return LegacyComponentSerializer.legacyAmpersand().serialize(component);
+	private Component clear(Component component) {
+		return TextUtils.deserializeLegacy(Placeholders.PLAYER + TextUtils.serializeLegacy(component));
 	}
 
 }
