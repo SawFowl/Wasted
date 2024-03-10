@@ -7,15 +7,8 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 public class Config {
 
 	public Config() {}
-
-	@Setting("JsonLocales")
-	private boolean jsonLocales = false;
 	@Setting("ConsoleDeathMessage")
 	private boolean consoleDeathMessage = true;
-
-	public boolean isJsonLocales() {
-		return jsonLocales;
-	}
 
 	public boolean isConsoleDeathMessage() {
 		return consoleDeathMessage;

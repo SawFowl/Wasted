@@ -72,7 +72,7 @@ public class Wasted {
 		} catch (ConfigurateException e) {
 			logger.warn(e.getLocalizedMessage());
 		}
-		locales = new Locales(event.getLocaleService(), getConfig().isJsonLocales());
+		locales = new Locales(event.getLocaleService());
 	}
 
 	@Listener

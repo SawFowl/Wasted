@@ -25,12 +25,10 @@ import sawfowl.localeapi.api.serializetools.itemstack.SerializedItemStackPlainNB
 public class Locales {
 
 	private final LocaleService localeService;
-	private final boolean json;
 	private String[] localesTags;
 	private Random random = new Random();
-	public Locales(LocaleService localeService, boolean json) {
+	public Locales(LocaleService localeService) {
 		this.localeService = localeService;
-		this.json = json;
 		localeService.createPluginLocale("wasted", ConfigTypes.HOCON, org.spongepowered.api.util.locale.Locales.DEFAULT);
 		localeService.createPluginLocale("wasted", ConfigTypes.HOCON, org.spongepowered.api.util.locale.Locales.RU_RU);
 		generateDefault();
@@ -144,11 +142,11 @@ public class Locales {
 	}
 
 	private boolean check(Locale locale, Component value, String comment, Object... path) {
-		return getPluginLocale(locale).checkComponent(json, value, comment, path);
+		return getPluginLocale(locale).checkComponent(true, value, comment, path);
 	}
 
 	private boolean check(Locale locale, List<Component> value, String comment, Object... path) {
-		return getPluginLocale(locale).checkListComponents(json, value, comment, path);
+		return getPluginLocale(locale).checkListComponents(true, value, comment, path);
 	}
 
 	private void save(Locale locale) {
