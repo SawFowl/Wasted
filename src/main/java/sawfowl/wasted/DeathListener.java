@@ -1,12 +1,14 @@
 package sawfowl.wasted;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 
 import org.spongepowered.api.Sponge;
@@ -35,10 +37,14 @@ import org.spongepowered.api.util.Ticks;
 import org.spongepowered.api.world.gamerule.GameRules;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import sawfowl.localeapi.api.Text;
 import sawfowl.localeapi.api.TextUtils;
+import sawfowl.localeapi.api.config.locale.PluginLocale;
+import sawfowl.localeapi.api.serializetools.itemstack.SerializedItemStack;
 import sawfowl.wasted.configure.Placeholders;
 
 public class DeathListener {
@@ -48,6 +54,7 @@ public class DeathListener {
 	private final List<UUID> suicided = new ArrayList<>();
 	private final String suicide = "suicide";
 	private final Object[] suicidePath = {"DeathMessages", "Suicide"};
+	private Random random = new Random();
 	public DeathListener(Wasted plugin) {
 		this.plugin = plugin;
 	}
@@ -82,16 +89,16 @@ public class DeathListener {
 				if(source instanceof ServerPlayer) {
 					ServerPlayer killer = (ServerPlayer) source;
 					Object[] path = {deathMessages, "PvP", "Melee", "IndirectPlayer"}; 
-					if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(Text.of(message).replace(new String[] {killer.name(), getPlayerName(killer), indirectKiller.name(), getPlayerName(indirectKiller)}, Placeholders.KILLER, Placeholders.KILLER, Placeholders.INDIRECT_KILLER, Placeholders.INDIRECT_KILLER).get(), player, path);
+					if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, Text.of(message).replace(new String[] {killer.name(), getPlayerName(killer), indirectKiller.name(), getPlayerName(indirectKiller)}, Placeholders.KILLER, Placeholders.KILLER, Placeholders.INDIRECT_KILLER, Placeholders.INDIRECT_KILLER).get(), path);
 					sendMessage(message, player, string(source.get(Keys.CUSTOM_NAME).get()), string(indirectSource.get(Keys.CUSTOM_NAME).get()), path);
 				} else {
 					Object[] path = {deathMessages, "PvP", "Melee", "IndirectPlayer", "Source", entityId(source)};
 					if(source.get(Keys.CUSTOM_NAME).isPresent()) {
 						path = new Object[] {deathMessages, "PvP", "Melee", "IndirectPlayer", "CustomNames", string(source.get(Keys.CUSTOM_NAME).get())};
-						if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(Text.of(message).replace(new String[] {string(source.get(Keys.CUSTOM_NAME).get()), indirectKiller.name(), getPlayerName(indirectKiller)}, Placeholders.KILLER, Placeholders.INDIRECT_KILLER, Placeholders.INDIRECT_KILLER).get(), player, path);
+						if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, Text.of(message).replace(new String[] {string(source.get(Keys.CUSTOM_NAME).get()), indirectKiller.name(), getPlayerName(indirectKiller)}, Placeholders.KILLER, Placeholders.INDIRECT_KILLER, Placeholders.INDIRECT_KILLER).get(), path);
 						sendMessage(message, player, string(source.get(Keys.CUSTOM_NAME).get()), string(indirectSource.get(Keys.CUSTOM_NAME).get()), path);
 					} else {
-						if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(Text.of(message).replace(new String[] {indirectKiller.name(), getPlayerName(indirectKiller)}, Placeholders.INDIRECT_KILLER, Placeholders.INDIRECT_KILLER).get(), player, path);
+						if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, Text.of(message).replace(new String[] {indirectKiller.name(), getPlayerName(indirectKiller)}, Placeholders.INDIRECT_KILLER, Placeholders.INDIRECT_KILLER).get(), player, path);
 						sendMessage(message, player, string(indirectSource.get(Keys.CUSTOM_NAME).get()), path);
 					}
 				}
@@ -100,10 +107,10 @@ public class DeathListener {
 				Object[] path = {deathMessages, "PvP", "Melee", "IndirectEntity", entityId(indirectSource)};
 				if(indirectSource.get(Keys.CUSTOM_NAME).isPresent()) {
 					path = new Object[] {deathMessages, "PvP", "Melee", "IndirectEntity", "CustomNames", indirectSource.get(Keys.CUSTOM_NAME).get()};
-					if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(Text.of(message).replace(new String[] {player.name(),  getPlayerName(killer), string(indirectSource.get(Keys.CUSTOM_NAME).get())}, Placeholders.KILLER, Placeholders.KILLER, Placeholders.INDIRECT_KILLER).get(), player, path);
+					if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, Text.of(message).replace(new String[] {player.name(),  getPlayerName(killer), string(indirectSource.get(Keys.CUSTOM_NAME).get())}, Placeholders.KILLER, Placeholders.KILLER, Placeholders.INDIRECT_KILLER).get(),  path);
 					sendMessage(message, player, string(source.get(Keys.CUSTOM_NAME).get()), string(indirectSource.get(Keys.CUSTOM_NAME).get()), path);
 				} else {
-					if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(Text.of(message).replace(new String[] {player.name(),  getPlayerName(killer)}, Placeholders.KILLER, Placeholders.KILLER).get(), player, path);
+					if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, Text.of(message).replace(new String[] {player.name(),  getPlayerName(killer)}, Placeholders.KILLER, Placeholders.KILLER).get(), path);
 					sendMessage(message, player, string(indirectSource.get(Keys.CUSTOM_NAME).get()), path);
 				}
 			} else {
@@ -113,8 +120,8 @@ public class DeathListener {
 						path = new Object[] {deathMessages, "Mobs", "Melee", "IndirectEntity", "CustomNames", string(source.get(Keys.CUSTOM_NAME).get()), indirectSource.get(Keys.CUSTOM_NAME).get()};
 					} else path = new Object[] {deathMessages, "Mobs", "Melee", "IndirectEntity", "CustomNames", string(source.get(Keys.CUSTOM_NAME).get()), entityId(indirectSource)};
 				} else if(indirectSource.get(Keys.CUSTOM_NAME).isPresent()) path = new Object[] {deathMessages, "PvP", "Melee", "IndirectEntity", "CustomNames", entityId(source), indirectSource.get(Keys.CUSTOM_NAME).get()};
-				if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, string(source.type().asComponent()), path);
-				sendMessage(message, player, path);
+				if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, string(source.type().asComponent()), path);
+				sendMessage(message, player, string(source.type().asComponent()), path);
 			}
 		} else if(damageSource.source().isPresent()) {
 			Entity source = damageSource.source().get();
@@ -126,51 +133,51 @@ public class DeathListener {
 							ItemStack handItem = killer.itemInHand(HandTypes.MAIN_HAND);
 							Object[] path = {deathMessages, "PvP", "Projectile", entityId(projectile)};
 							if(!handItem.type().equals(ItemTypes.AIR.get())) path = new Object[] {deathMessages, "PvP", "Projectile", "Weapon", entityId(projectile)};
-							if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, killer.name(), getPlayerName(killer), path);
+							if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, killer.name(), getPlayerName(killer), path);
 							sendMessage(message, player, getPlayerName(player), handItem, path);
 						} else {
 							source = (Entity) projectileSource;
 							Object[] path = {deathMessages, "Mobs", "Projectile", entityId(source), entityId(projectile)};
 							if(source.get(Keys.CUSTOM_NAME).isPresent()) {
 								path = new Object[] {deathMessages, "Mobs", "Projectile", "CustomNames", string(source.get(Keys.CUSTOM_NAME).get()), entityId(projectile)};
-								if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, TextUtils.clearDecorations(source.get(Keys.CUSTOM_NAME).get()), path);
+								if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, TextUtils.clearDecorations(source.get(Keys.CUSTOM_NAME).get()), path);
 								sendMessage(message, player, string(source.get(Keys.CUSTOM_NAME).get()), path);
 							} else {
-								if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, string(source.type().asComponent()), path);
-								sendMessage(message, player, path);
+								if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, string(source.type().asComponent()), path);
+								sendMessage(message, player, string(source.type().asComponent()), path);
 							}
 						}
 					} else if(projectileSource instanceof BlockProjectileSource blockSource) {
 						BlockState block = blockSource.block();
 						Object[] path = {deathMessages, "Blocks", "Projectile", blockID(block), entityId(projectile)};
-						if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, string(block.type().asComponent()), path);
-						sendMessage(message, player, path);
+						if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, string(block.type().asComponent()), path);
+						sendMessage(message, player, string(block.type().asComponent()), path);
 					} else {
 						Object[] path = {deathMessages, "Blocks", "Projectile", "UnknownSource", entityId(projectile)};
-						if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, string(source.type().asComponent()), path);
-						sendMessage(message, player, path);
+						if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, string(source.type().asComponent()), path);
+						sendMessage(message, player, string(source.type().asComponent()), path);
 					}
 				} else {
 					Object[] path = {deathMessages, "Blocks", "Projectile", "UnknownSource", entityId(projectile)};
-					if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, string(source.type().asComponent()), path);
-					sendMessage(message, player, path);
+					if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, string(source.type().asComponent()), path);
+					sendMessage(message, player, string(source.type().asComponent()), path);
 				}
 			} else {
 				if(source instanceof ServerPlayer killer) {
 					ItemStack handItem = killer.itemInHand(HandTypes.MAIN_HAND);
 					Object[] path = {deathMessages, "PvP", "Melee"};
 					if(!handItem.type().equals(ItemTypes.AIR.get())) path = new Object[] {deathMessages, "PvP", "Melee", "Weapon"};
-					if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, killer.name(), getPlayerName(killer), path);
+					if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, killer.name(), getPlayerName(killer), path);
 					sendMessage(message, player, getPlayerName(player), handItem, path);
 				} else {
 					Object[] path = {deathMessages, "Mobs", "Melee", entityId(source)};
 					if(source.get(Keys.CUSTOM_NAME).isPresent()) {
 						path = new Object[] {deathMessages, "Mobs", "Melee", "CustomNames", string(source.get(Keys.CUSTOM_NAME).get())};
-						if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, TextUtils.clearDecorations(source.get(Keys.CUSTOM_NAME).get()), path);
+						if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, TextUtils.clearDecorations(source.get(Keys.CUSTOM_NAME).get()), path);
 						sendMessage(message, player, string(source.get(Keys.CUSTOM_NAME).get()), path);
 					} else {
-						if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, string(source.type().asComponent()), path);
-						sendMessage(message, player, path);
+						if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, string(source.type().asComponent()), path);
+						sendMessage(message, player, string(source.type().asComponent()), path);
 					}
 				}
 			}
@@ -184,26 +191,26 @@ public class DeathListener {
 						ServerPlayer killer = (ServerPlayer) optLastAtacker.get();
 						path = new Object[] {deathMessages, "FallingBlocks", "PvP", blockId};
 						if(!killer.itemInHand(HandTypes.MAIN_HAND).type().equals(ItemTypes.AIR.get())) {
-							if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(Text.of(message).replace(new String[] {killer.name(), getPlayerName(killer), string(killer.itemInHand(HandTypes.MAIN_HAND).asComponent())}, Placeholders.KILLER, Placeholders.KILLER, Placeholders.ITEM).get(), player, path);
+							if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, Text.of(message).replace(new String[] {killer.name(), getPlayerName(killer), string(killer.itemInHand(HandTypes.MAIN_HAND).asComponent())}, Placeholders.KILLER, Placeholders.KILLER, Placeholders.ITEM).get(), path);
 							sendMessage(message, player, getPlayerName(killer), killer.itemInHand(HandTypes.MAIN_HAND), path);
 						} else {
-							if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(Text.of(message).replace(new String[] {killer.name(), getPlayerName(killer)}, Placeholders.KILLER, Placeholders.KILLER).get(), player, path);
+							if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, Text.of(message).replace(new String[] {killer.name(), getPlayerName(killer)}, Placeholders.KILLER, Placeholders.KILLER).get(), path);
 							sendMessage(message, player, getPlayerName(killer), path);
 						}
 					} else {
 						path = new Object[] {deathMessages, "FallingBlocks", "Mobs", blockId};
 						if(optLastAtacker.get().get(Keys.CUSTOM_NAME).isPresent()) {
 							path = new Object[] {deathMessages, "FallingBlocks", "Mobs", blockId, string(optLastAtacker.get().get(Keys.CUSTOM_NAME).get())};
-							if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, path);
+							if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, message, path);
 							sendMessage(message, player, string(optLastAtacker.get().get(Keys.CUSTOM_NAME).get()), path);
 						} else {
 							path = new Object[] {deathMessages, "FallingBlocks", "Mobs", blockId, entityId(optLastAtacker.get())};
-							if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, string(fallingBlock.blockState().get().type().asComponent()), path);
-							sendMessage(message, player, path);
+							if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, string(fallingBlock.blockState().get().type().asComponent()), path);
+							sendMessage(message, player, string(fallingBlock.blockState().get().type().asComponent()), path);
 						}
 					}
 				} else {
-					if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, path);
+					if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, message, path);
 					sendMessage(message, player, path);
 				}
 			} else if(damageSource.blockSnapshot().isPresent()) {
@@ -214,26 +221,26 @@ public class DeathListener {
 						ServerPlayer killer = (ServerPlayer) optLastAtacker.get();
 						path = new Object[] {deathMessages, "BlockDamage", "PvP", blockId};
 						if(!killer.itemInHand(HandTypes.MAIN_HAND).type().equals(ItemTypes.AIR.get())) {
-							if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(Text.of(message).replace(new String[] {killer.name(), getPlayerName(killer), string(killer.itemInHand(HandTypes.MAIN_HAND).asComponent())}, Placeholders.KILLER, Placeholders.KILLER, Placeholders.ITEM).get(), player, path);
+							if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, Text.of(message).replace(new String[] {killer.name(), getPlayerName(killer), string(killer.itemInHand(HandTypes.MAIN_HAND).asComponent())}, Placeholders.KILLER, Placeholders.KILLER, Placeholders.ITEM).get(), path);
 							sendMessage(message, player, getPlayerName(killer), killer.itemInHand(HandTypes.MAIN_HAND), path);
 						} else {
-							if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(Text.of(message).replace(new String[] {killer.name(), getPlayerName(killer)}, Placeholders.KILLER, Placeholders.KILLER).get(), player, path);
+							if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, Text.of(message).replace(new String[] {killer.name(), getPlayerName(killer)}, Placeholders.KILLER, Placeholders.KILLER).get(), path);
 							sendMessage(message, player, getPlayerName(killer), path);
 						}
 					} else {
 						path = new Object[] {deathMessages, "BlockDamage", "Mobs", blockId};
 						if(optLastAtacker.get().get(Keys.CUSTOM_NAME).isPresent()) {
 							path = new Object[] {deathMessages, "BlockDamage", "Mobs", blockId, string(optLastAtacker.get().get(Keys.CUSTOM_NAME).get())};
-							if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, path);
+							if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, message, path);
 							sendMessage(message, player, string(optLastAtacker.get().get(Keys.CUSTOM_NAME).get()), path);
 						} else {
 							path = new Object[] {deathMessages, "BlockDamage", "Mobs", blockId, entityId(optLastAtacker.get())};
-							if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, string(optLastAtacker.get().type().asComponent()), path);
-							sendMessage(message, player, path);
+							if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, string(optLastAtacker.get().type().asComponent()), path);
+							sendMessage(message, player, string(optLastAtacker.get().type().asComponent()), path);
 						}
 					}
 				} else {
-					if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, path);
+					if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, message, path);
 					sendMessage(message, player, path);
 				}
 			} else {
@@ -242,31 +249,32 @@ public class DeathListener {
 				boolean checkDownBlock = damageId.equals("minecraft:fall");
 				boolean checkBlock = damageId.equals("minecraft:drown") || damageId.equals("minecraft:in_wall") || checkDownBlock;
 				Object[] path = checkBlock ? new Object[]{deathMessages, "DamageTypes", "Simple", damageId, blockID(player.world().block(checkDownBlock ? player.blockPosition() :player.eyePosition().get().toInt()))} : new Object[]{deathMessages, "DamageTypes", "Simple", damageId};
+				addDeathMessage(player, message, path);
 				if(optLastAtacker.isPresent()) {
 					if(optLastAtacker.get() instanceof ServerPlayer) {
 						ServerPlayer killer = (ServerPlayer) optLastAtacker.get();
 						path = checkBlock ? new Object[]{deathMessages, "DamageTypes", "PvP", damageId, blockID(player.world().block(checkDownBlock ? player.blockPosition() :player.eyePosition().get().toInt()))} : new Object[]{deathMessages, "DamageTypes", "PvP", damageId};
 						if(!killer.itemInHand(HandTypes.MAIN_HAND).type().equals(ItemTypes.AIR.get())) {
-							if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(Text.of(message).replace(string(killer.itemInHand(HandTypes.MAIN_HAND).asComponent()), Placeholders.ITEM).get(), player, path);
+							if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, Text.of(message).replace(string(killer.itemInHand(HandTypes.MAIN_HAND).asComponent()), Placeholders.ITEM).get(), path);
 							sendMessage(message, player, getPlayerName(killer), killer.itemInHand(HandTypes.MAIN_HAND), path);
 						} else {
-							if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, killer.name(), getPlayerName(killer), path);
+							if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, killer.name(), getPlayerName(killer), path);
 							sendMessage(message, player, getPlayerName(killer), path);
 						}
 					} else {
 						path = checkBlock ? new Object[]{deathMessages, "DamageTypes", "Mobs", damageId, blockID(player.world().block(checkDownBlock ? player.blockPosition() :player.eyePosition().get().toInt()))} : new Object[]{deathMessages, "DamageTypes", "Mobs", damageId};
 						if(optLastAtacker.get().get(Keys.CUSTOM_NAME).isPresent()) {
 							path = checkBlock ? new Object[] {deathMessages, "DamageTypes", "Mobs", damageId, string(optLastAtacker.get().get(Keys.CUSTOM_NAME).get()), blockID(player.world().block(checkDownBlock ? player.blockPosition() :player.eyePosition().get().toInt()))} : new Object[] {deathMessages, "DamageTypes", "Mobs", damageId, string(optLastAtacker.get().get(Keys.CUSTOM_NAME).get())};
-							if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, string(optLastAtacker.get().get(Keys.CUSTOM_NAME).get()), path);
+							if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, string(optLastAtacker.get().get(Keys.CUSTOM_NAME).get()), path);
 							sendMessage(message, player, string(optLastAtacker.get().get(Keys.CUSTOM_NAME).get()), path);
 						} else {
 							path = checkBlock ? new Object[] {deathMessages, "DamageTypes", "Mobs", damageId, entityId(optLastAtacker.get()), blockID(player.world().block(checkDownBlock ? player.blockPosition() :player.eyePosition().get().toInt()))} : new Object[] {deathMessages, "DamageTypes", "Mobs", damageId, entityId(optLastAtacker.get())};
-							if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, string(optLastAtacker.get().type().asComponent()), path);
-							sendMessage(message, player, path);
+							if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(message, player, string(optLastAtacker.get().type().asComponent()), path);
+							sendMessage(message, player, string(optLastAtacker.get().type().asComponent()), path);
 						}
 					}
 				} else {
-					if(plugin.getLocales().isVirtualMessagePath(path)) plugin.getLocales().addDeathMessage(message, player, path);
+					if(!plugin.getLocales().getDefaultSimpleLocale().contains(path)) addDeathMessage(player, message, path);
 					sendMessage(message, player, path);
 				}
 			}
@@ -303,10 +311,10 @@ public class DeathListener {
 
 	private void sendMessage(Component message, ServerPlayer player, String killer, ItemStack item, Object... path) {
 		Sponge.asyncScheduler().submit(Task.builder().plugin(plugin.getPluginContainer()).execute(() -> {
-			if(plugin.getConfig().isConsoleDeathMessage()) Sponge.systemSubject().sendMessage(plugin.getLocales().isVirtualMessagePath(path) ? plugin.getLocales().getPrefix(plugin.getLocales().getLocaleService().getSystemOrDefaultLocale()).append(message) : plugin.getLocales().getRandomMessage(plugin.getLocales().getLocaleService().getSystemOrDefaultLocale(), player, killer, item, path));
+			if(plugin.getConfig().isConsoleDeathMessage()) Sponge.systemSubject().sendMessage(plugin.getLocales().getDefaultSimpleLocale().contains(path) ? getPrefix(plugin.getLocales().getSystemOrDefaultLocale()).append(message) : getRandomMessage(plugin.getLocales().getSystemOrDefaultLocale(), player, killer, item, path));
 			Map<Locale, Component> messages = new HashMap<Locale, Component>();
 			for(ServerPlayer reciever : getOnlinePlayers()) {
-				if(!messages.containsKey(reciever.locale())) messages.put(reciever.locale(), plugin.getLocales().isVirtualMessagePath(reciever.locale(), path) ? plugin.getLocales().getPrefix(reciever.locale()).append(message) : plugin.getLocales().getRandomMessage(reciever.locale(), player, killer, item, path));
+				if(!messages.containsKey(reciever.locale())) messages.put(reciever.locale(), plugin.getLocales().getSystemSimpleLocale().contains(reciever.locale(), path) ? getPrefix(reciever.locale()).append(message) : getRandomMessage(reciever.locale(), player, killer, item, path));
 				reciever.sendMessage(messages.get(reciever.locale()));
 			}
 			messages.clear();
@@ -316,10 +324,10 @@ public class DeathListener {
 
 	private void sendMessage(Component message, ServerPlayer player, String killer, Object... path) {
 		Sponge.asyncScheduler().submit(Task.builder().plugin(plugin.getPluginContainer()).execute(() -> {
-			if(plugin.getConfig().isConsoleDeathMessage()) Sponge.systemSubject().sendMessage(plugin.getLocales().isVirtualMessagePath(path) ? plugin.getLocales().getPrefix(plugin.getLocales().getLocaleService().getSystemOrDefaultLocale()).append(message) : plugin.getLocales().getRandomMessage(plugin.getLocales().getLocaleService().getSystemOrDefaultLocale(), player, killer, path));
+			if(plugin.getConfig().isConsoleDeathMessage()) Sponge.systemSubject().sendMessage(plugin.getLocales().getDefaultSimpleLocale().contains(path) ? getPrefix(plugin.getLocales().getSystemOrDefaultLocale()).append(message) : getRandomMessage(plugin.getLocales().getSystemOrDefaultLocale(), player, killer, path));
 			Map<Locale, Component> messages = new HashMap<Locale, Component>();
 			for(ServerPlayer reciever : getOnlinePlayers()) {
-				if(!messages.containsKey(reciever.locale())) messages.put(reciever.locale(), plugin.getLocales().isVirtualMessagePath(reciever.locale(), path) ? plugin.getLocales().getPrefix(reciever.locale()).append(message) : plugin.getLocales().getRandomMessage(reciever.locale(), player, killer, path));
+				if(!messages.containsKey(reciever.locale())) messages.put(reciever.locale(), plugin.getLocales().getSystemSimpleLocale().contains(reciever.locale(), path) ? getPrefix(reciever.locale()).append(message) : getRandomMessage(reciever.locale(), player, killer, path));
 				reciever.sendMessage(messages.get(reciever.locale()));
 			}
 			messages.clear();
@@ -329,10 +337,10 @@ public class DeathListener {
 
 	private void sendMessage(Component message, ServerPlayer player, String killer, String indirectKiller, Object... path) {
 		Sponge.asyncScheduler().submit(Task.builder().plugin(plugin.getPluginContainer()).execute(() -> {
-			if(plugin.getConfig().isConsoleDeathMessage()) Sponge.systemSubject().sendMessage(plugin.getLocales().isVirtualMessagePath(path) ? plugin.getLocales().getPrefix(plugin.getLocales().getLocaleService().getSystemOrDefaultLocale()).append(message) : plugin.getLocales().getRandomMessage(plugin.getLocales().getLocaleService().getSystemOrDefaultLocale(), player, killer, indirectKiller, path));
+			if(plugin.getConfig().isConsoleDeathMessage()) Sponge.systemSubject().sendMessage(plugin.getLocales().getDefaultSimpleLocale().contains(path) ? getPrefix(plugin.getLocales().getSystemOrDefaultLocale()).append(message) : getRandomMessage(plugin.getLocales().getSystemOrDefaultLocale(), player, killer, indirectKiller, path));
 			Map<Locale, Component> messages = new HashMap<Locale, Component>();
 			for(ServerPlayer reciever : getOnlinePlayers()) {
-				if(!messages.containsKey(reciever.locale())) messages.put(reciever.locale(), plugin.getLocales().isVirtualMessagePath(reciever.locale(), path) ? plugin.getLocales().getPrefix(reciever.locale()).append(message) : plugin.getLocales().getRandomMessage(reciever.locale(), player, killer, indirectKiller, path));
+				if(!messages.containsKey(reciever.locale())) messages.put(reciever.locale(), plugin.getLocales().getSystemSimpleLocale().contains(reciever.locale(), path) ? getPrefix(reciever.locale()).append(message) : getRandomMessage(reciever.locale(), player, killer, indirectKiller, path));
 				reciever.sendMessage(messages.get(reciever.locale()));
 			}
 			messages.clear();
@@ -342,15 +350,76 @@ public class DeathListener {
 
 	private void sendMessage(Component message, ServerPlayer player, Object... path) {
 		Sponge.asyncScheduler().submit(Task.builder().plugin(plugin.getPluginContainer()).execute(() -> {
-			if(plugin.getConfig().isConsoleDeathMessage()) Sponge.systemSubject().sendMessage(plugin.getLocales().isVirtualMessagePath(path) ? plugin.getLocales().getPrefix(plugin.getLocales().getLocaleService().getSystemOrDefaultLocale()).append(message) : plugin.getLocales().getRandomMessage(plugin.getLocales().getLocaleService().getSystemOrDefaultLocale(), player, path));
+			if(plugin.getConfig().isConsoleDeathMessage()) Sponge.systemSubject().sendMessage(plugin.getLocales().getDefaultSimpleLocale().contains(path) ? getPrefix(plugin.getLocales().getSystemOrDefaultLocale()).append(message) : getRandomMessage(plugin.getLocales().getSystemOrDefaultLocale(), player, path));
 			Map<Locale, Component> messages = new HashMap<Locale, Component>();
 			for(ServerPlayer reciever : getOnlinePlayers()) {
-				if(!messages.containsKey(reciever.locale())) messages.put(reciever.locale(), plugin.getLocales().isVirtualMessagePath(reciever.locale(), path) ? plugin.getLocales().getPrefix(reciever.locale()).append(message) : plugin.getLocales().getRandomMessage(reciever.locale(), player, path));
+				if(!messages.containsKey(reciever.locale())) messages.put(reciever.locale(), plugin.getLocales().getSystemSimpleLocale().contains(reciever.locale(), path) ? getPrefix(reciever.locale()).append(message) : getRandomMessage(reciever.locale(), player, path));
 				reciever.sendMessage(messages.get(reciever.locale()));
 			}
 			messages.clear();
 			messages = null;
 		}).build());
+	}
+
+	private void addDeathMessage(ServerPlayer player, Component component, Object... path) {
+		addMessage(clear(component, player), path);
+	}
+
+	private void addDeathMessage(Component component, ServerPlayer player, String killer, Object... path) {
+		addMessage(Text.of(clear(component, player)).replace(killer, "").append(Component.text(Placeholders.KILLER)).get(), path);
+	}
+
+	private void addDeathMessage(Component component, ServerPlayer player, String killer, String killerCustomName, Object... path) {
+		addMessage(Text.of(clear(component, player)).replace(killer, "").replace(killerCustomName, "").append(Component.text(Placeholders.KILLER)).get(), path);
+	}
+
+	private void addMessage(Component message, Object... path) {
+		if(plugin.getLocales().getDefaultSimpleLocale().addIfNotExist(Component.class, Arrays.asList(message), null, path)) plugin.getLocales().getDefaultSimpleLocale().save();
+	}
+
+	private Component clear(Component component, ServerPlayer player) {
+		String string = TextUtils.serializeLegacy(component);
+		if(string.contains(player.name())) string = string.replace(player.name(), Placeholders.PLAYER);
+		String customName = player.customName().map(name -> TextUtils.clearDecorations(name.get())).orElse(null);
+		if(customName != null && string.contains(customName)) string = string.replace(customName, Placeholders.PLAYER);
+		if(!string.contains(Placeholders.PLAYER)) string = Placeholders.PLAYER + string;
+		return TextUtils.deserializeLegacy(string);
+	}
+
+	private PluginLocale getPluginLocale(Locale locale) {
+		return plugin.getLocales().contains(locale) ? plugin.getLocales().getSimple(locale) : plugin.getLocales().getSystemSimpleLocale();
+	}
+
+	public Component getText(Locale locale, Object... path) {
+		return getPluginLocale(locale).getComponent(path);
+	}
+
+	public Component getTextFromDefault(Object... path) {
+		return getPluginLocale(org.spongepowered.api.util.locale.Locales.DEFAULT).getComponent(path);
+	}
+
+	public Component getRandomMessage(Locale locale, ServerPlayer player, Object... path) {
+		List<Component> components = getPluginLocale(player.locale()).getList(Component.class, path);
+		return getPrefix(locale).append(Text.of(components.get(random.nextInt(components.size()))).replace(Placeholders.PLAYER, TextUtils.deserialize(player.customName().map(name -> TextUtils.clearDecorations(name.get())).orElse(player.name())).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " "))).get());
+	}
+
+	public Component getRandomMessage(Locale locale, ServerPlayer player, String killer, Object... path) {
+		List<Component> components = getPluginLocale(player.locale()).getList(Component.class, path);
+		return getPrefix(locale).append(Text.of(components.get(random.nextInt(components.size()))).replace(new String[] {Placeholders.PLAYER, Placeholders.KILLER}, TextUtils.deserialize(player.customName().map(name -> TextUtils.clearDecorations(name.get())).orElse(player.name())).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), TextUtils.deserialize(killer)).get());
+	}
+
+	public Component getRandomMessage(Locale locale, ServerPlayer player, String killer, String indirectKiller, Object... path) {
+		List<Component> components = getPluginLocale(player.locale()).getList(Component.class, path);
+		return getPrefix(locale).append(Text.of(components.get(random.nextInt(components.size()))).replace(new String[] {Placeholders.PLAYER, Placeholders.KILLER, Placeholders.INDIRECT_KILLER}, TextUtils.deserialize(player.customName().map(name -> TextUtils.clearDecorations(name.get())).orElse(player.name())).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), TextUtils.deserialize(killer), TextUtils.deserialize(indirectKiller)).get());
+	}
+
+	public Component getRandomMessage(Locale locale, ServerPlayer player, String killer, ItemStack item, Object... path) {
+		List<Component> components = getPluginLocale(player.locale()).getList(Component.class, path);
+		return getPrefix(locale).append(Text.of(components.get(random.nextInt(components.size()))).replace(new String[] {Placeholders.PLAYER, Placeholders.KILLER, Placeholders.ITEM}, TextUtils.deserialize(player.customName().map(name -> TextUtils.clearDecorations(name.get())).orElse(player.name())).clickEvent(ClickEvent.suggestCommand("/tell " + player.name() + " ")), TextUtils.deserialize(killer), item.asComponent().hoverEvent(HoverEvent.showItem((new SerializedItemStack(item).getItemKey()), item.quantity()))).get());
+	}
+
+	public Component getPrefix(Locale locale) {
+		return getPluginLocale(locale).getComponent("Basic", "Prefix");
 	}
 
 }

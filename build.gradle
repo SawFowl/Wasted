@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "sawfowl.wasted"
-version = "${major}.${minor}.${patch}-${api}-${suffix}"
+version = "${major}.${minor}.${patch}-${suffix}-${api}"
 
 java {
 	sourceCompatibility = targetCompatibility = JavaVersion.VERSION_21
@@ -29,8 +29,8 @@ tasks.withType(JavaCompile) {
 
 dependencies {
 	implementation "org.spongepowered:spongeapi:${api}"
-	implementation "com.github.SawFowl:LocaleAPI:${localeapi}"
-	//implementation fileTree(dir: 'libs', include: '*.jar')
+	//implementation "com.github.SawFowl:LocaleAPI:${localeapi}"
+	implementation fileTree(dir: 'libs', include: '*.jar')
 }
 
 sponge {
