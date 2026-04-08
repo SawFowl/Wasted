@@ -19,13 +19,14 @@ import org.spongepowered.plugin.builtin.jvm.Plugin;
 import com.google.inject.Inject;
 
 import sawfowl.localeapi.api.ConfigTypes;
-import sawfowl.localeapi.api.LocaleService;
 import sawfowl.localeapi.api.LocalesList;
 import sawfowl.localeapi.api.TextUtils;
 import sawfowl.localeapi.api.Translation;
 import sawfowl.localeapi.api.config.ReferencedConfig;
 import sawfowl.localeapi.api.config.locale.PluginLocale;
 import sawfowl.localeapi.api.serializetools.ItemStackSerializerType;
+import sawfowl.localeapi.api.services.ConfigurationService;
+import sawfowl.localeapi.api.services.LocaleService;
 import sawfowl.wasted.configure.Config;
 import sawfowl.wasted.configure.Placeholders;
 
@@ -64,9 +65,9 @@ public class Wasted {
 		this.pluginContainer = pluginContainer;
 		logger = LogManager.getLogger("\033[31mWasted\033[0m");
 		locales = LocaleService.getInstance().createLocales(pluginContainer);
-		config = ReferencedConfig.create(pluginContainer, configDirectory, "Config", ConfigTypes.HOCON, ItemStackSerializerType.JSON, null, Config.class);
 		if(!locales.contains(Locales.DEFAULT)) generateDefault();
 		if(!locales.contains(Locales.RU_RU)) generateRu();
+		config = ConfigurationService.getInstance().createReferencedConfig(pluginContainer, Config.class).setPath(configDirectory).setName("Config").setType(ConfigTypes.HOCON).setItemStackSerializerType(ItemStackSerializerType.JSON).build();
 	}
 
 	@Listener
